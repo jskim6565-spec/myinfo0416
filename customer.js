@@ -1,46 +1,11 @@
-// 더미 데이터 생성기 (테스트 목적)
-const generateDummyData = () => {
-    const lastNames = ['김', '이', '박', '정', '최', '강', '윤', '장', '한', '송'];
-    const firstNames = ['철수', '영희', '민수', '지은', '동훈', '서연', '여준', '보람', '지민', '중기', '태리', '보영', '우식', '수지'];
-    const domains = ['gmail.com', 'naver.com', 'daum.net', 'kakao.com'];
-
-    let data = [];
-    // 45명의 가상 유저 생성
-    for (let i = 1; i <= 45; i++) {
-        const name = lastNames[Math.floor(Math.random() * lastNames.length)] + firstNames[Math.floor(Math.random() * firstNames.length)];
-        const domain = domains[Math.floor(Math.random() * domains.length)];
-        const email = `user${i}@${domain}`;
-        const phone = `010-${Math.floor(1000 + Math.random() * 9000)}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-        // 지난 1년 내로 무작위 가입일 생성
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 365));
-        const dateStr = date.toISOString().split('T')[0];
-
-        // 80% 확률로 ACTIVE 설정
-        const status = Math.random() > 0.2 ? 'ACTIVE' : 'INACTIVE';
-
-        const paths = ['GOOGLE', 'NAVER', 'EMAIL'];
-        const signupPath = paths[Math.floor(Math.random() * paths.length)];
-
-        data.push({
-            id: `CST-${i.toString().padStart(4, '0')}`,
-            name: name,
-            email: email,
-            phone: phone,
-            signupPath: signupPath,
-            createdAt: dateStr,
-            status: status
-        });
-    }
-
-    // 최근 가입자가 먼저 오도록 정렬 (id 역순)
-    return data.reverse();
-};
+// Supabase 설정
+const SUPABASE_URL = 'https://dyyzqpdxqcqttukuqtdc.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_b8cBAdH4SHHPIkUl2P3XsQ_EjA-L4T9';
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 전역 상태 변수들
-let customers = generateDummyData();
-let filteredCustomers = [...customers];
+let customers = [];
+let filteredCustomers = [];
 let currentPage = 1;
 const ITEMS_PER_PAGE = 10;
 
@@ -214,6 +179,34 @@ btnCancel.addEventListener('click', (e) => {
     closeModal();
 });
 
+// [Read] Supabase에서 데이터 가져오기
+const fetchCustomers = async () => {
+    try {
+        const { data, error } = await supabase
+            .from('customers')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        customers = data.map(c => ({
+            uuid: c.id,
+            id: c.display_id,
+            name: c.name,
+            email: c.email,
+            phone: c.phone,
+            signupPath: c.signup_path,
+            createdAt: c.created_at.split('T')[0],
+            status: c.status
+        }));
+        
+        applyFilters();
+    } catch (error) {
+        console.error('Error fetching customers:', error);
+        showToast('데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+};
+
 // [Update] 수정 모달 띄우기 (전역 스코프로 노출)
 window.openEditModal = (id) => {
     const customer = customers.find(c => c.id === id);
@@ -231,19 +224,32 @@ window.openEditModal = (id) => {
 };
 
 // [Delete] 고객 삭제
-window.deleteCustomer = (id) => {
+window.deleteCustomer = async (id) => {
+    const customer = customers.find(c => c.id === id);
+    if (!customer) return;
+
     if (confirm('정말로 해당 고객의 정보를 삭제하시겠습니까?')) {
-        customers = customers.filter(c => c.id !== id);
-        applyFilters(); // 삭제 후 리스트 갱신
-        showToast('고객 정보가 안전하게 삭제되었습니다.');
+        try {
+            const { error } = await supabase
+                .from('customers')
+                .delete()
+                .eq('id', customer.uuid);
+
+            if (error) throw error;
+
+            showToast('고객 정보가 안전하게 삭제되었습니다.');
+            await fetchCustomers();
+        } catch (error) {
+            console.error('Error deleting customer:', error);
+            showToast('삭제 중 오류가 발생했습니다.');
+        }
     }
 };
 
 // [Create & Update] 폼 제출 핸들링
-document.getElementById('saveCustomerBtn').addEventListener('click', (e) => {
+document.getElementById('saveCustomerBtn').addEventListener('click', async (e) => {
     e.preventDefault();
 
-    // 폼 유효성 검사
     if (!customerForm.checkValidity()) {
         customerForm.reportValidity();
         return;
@@ -257,29 +263,47 @@ document.getElementById('saveCustomerBtn').addEventListener('click', (e) => {
     const signupPath = formSignupPath ? formSignupPath.value : 'EMAIL';
     const status = document.getElementById('customerStatus').value;
 
-    if (id) {
-        // 기존 회원의 정보 업데이트
-        const idx = customers.findIndex(c => c.id === id);
-        if (idx > -1) {
-            customers[idx] = { ...customers[idx], name, email, phone, signupPath, status };
+    try {
+        if (id) {
+            // Update
+            const customer = customers.find(c => c.id === id);
+            const { error } = await supabase
+                .from('customers')
+                .update({
+                    name, email, phone,
+                    signup_path: signupPath,
+                    status
+                })
+                .eq('id', customer.uuid);
+
+            if (error) throw error;
+            showToast('고객 정보가 수정되었습니다.');
+        } else {
+            // Create
+            // display_id 생성 logic (현장에서는 실제 DB sequence나 trigger 권장)
+            const countResponse = await supabase.from('customers').select('*', { count: 'exact', head: true });
+            const totalCount = countResponse.count || 0;
+            const newDisplayId = `CST-${(totalCount + 1).toString().padStart(4, '0')}`;
+
+            const { error } = await supabase
+                .from('customers')
+                .insert([{
+                    display_id: newDisplayId,
+                    name, email, phone,
+                    signup_path: signupPath,
+                    status
+                }]);
+
+            if (error) throw error;
+            showToast('새로운 고객이 등록되었습니다.');
         }
-        showToast('고객 정보가 수정되었습니다.');
-    } else {
-        // 새로운 고객 추가
-        // 임시로 생성하는 ID 이므로 기존 개수 + 난수 활용
-        const newIdSuffix = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-        const newId = `CST-${newIdSuffix}`;
-        const date = new Date().toISOString().split('T')[0];
 
-        customers.unshift({
-            id: newId,
-            name, email, phone, signupPath, status, createdAt: date
-        });
-        showToast('새로운 고객이 등록되었습니다.');
+        closeModal();
+        await fetchCustomers();
+    } catch (error) {
+        console.error('Error saving customer:', error);
+        showToast('데이터 저장 중 오류가 발생했습니다.');
     }
-
-    closeModal();
-    applyFilters(); // 추가/수정 사항 반영을 위해 다시 랜더링
 });
 
 // 하단 토스트 알림 표시
@@ -306,4 +330,4 @@ const showToast = (message) => {
 };
 
 // 초기화
-renderTable();
+fetchCustomers();
