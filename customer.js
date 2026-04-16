@@ -1,7 +1,8 @@
 // Supabase 설정
 const SUPABASE_URL = 'https://dyyzqpdxqcqttukuqtdc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_b8cBAdH4SHHPIkUl2P3XsQ_EjA-L4T9';
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const { createClient } = window.supabase;
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // 전역 상태 변수들
 let customers = [];
@@ -182,7 +183,7 @@ btnCancel.addEventListener('click', (e) => {
 // [Read] Supabase에서 데이터 가져오기
 const fetchCustomers = async () => {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('customers')
             .select('*')
             .order('created_at', { ascending: false });
@@ -230,7 +231,7 @@ window.deleteCustomer = async (id) => {
 
     if (confirm('정말로 해당 고객의 정보를 삭제하시겠습니까?')) {
         try {
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('customers')
                 .delete()
                 .eq('id', customer.uuid);
@@ -267,7 +268,7 @@ document.getElementById('saveCustomerBtn').addEventListener('click', async (e) =
         if (id) {
             // Update
             const customer = customers.find(c => c.id === id);
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('customers')
                 .update({
                     name, email, phone,
@@ -280,12 +281,11 @@ document.getElementById('saveCustomerBtn').addEventListener('click', async (e) =
             showToast('고객 정보가 수정되었습니다.');
         } else {
             // Create
-            // display_id 생성 logic (현장에서는 실제 DB sequence나 trigger 권장)
-            const countResponse = await supabase.from('customers').select('*', { count: 'exact', head: true });
+            const countResponse = await supabaseClient.from('customers').select('*', { count: 'exact', head: true });
             const totalCount = countResponse.count || 0;
             const newDisplayId = `CST-${(totalCount + 1).toString().padStart(4, '0')}`;
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('customers')
                 .insert([{
                     display_id: newDisplayId,
