@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고객 관리 대시보드</title>
+    <!-- Google Fonts 폰트 적용 (세련된 룩) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="customer.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- 상단 내비게이션바 -->
+        <header class="top-nav">
+            <div class="logo">
+                <span class="logo-icon"></span>
+                <h1>Customer Manager</h1>
+            </div>
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff" alt="Admin" class="avatar">
+                <span>프로필</span>
+            </div>
+        </header>
+
+        <!-- 메인 컨텐츠 영역 -->
+        <main class="main-content">
+            <div class="page-header">
+                <h2>고객 목록</h2>
+                <button class="btn btn-primary" id="addCustomerBtn">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    고객 추가
+                </button>
+            </div>
+
+            <!-- 컨트롤 패널 (검색 및 필터링) -->
+            <div class="controls-panel">
+                <div class="search-box">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="searchInput" placeholder="이름, 이메일, 연락처로 검색...">
+                </div>
+                <div class="filter-box">
+                    <select id="statusFilter">
+                        <option value="">모든 상태 보기</option>
+                        <option value="ACTIVE">활성 (Active)</option>
+                        <option value="INACTIVE">비활성 (Inactive)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 데이터 테이블 영역 -->
+            <div class="table-container">
+                <table class="customer-table">
+                    <thead>
+                        <tr>
+                            <th width="40"><input type="checkbox" id="selectAll"></th>
+                            <th width="100">ID</th>
+                            <th>이름</th>
+                            <th>이메일</th>
+                            <th>연락처</th>
+                            <th>가입경로</th>
+                            <th>가입일</th>
+                            <th>상태</th>
+                            <th width="100">액션</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customerTableBody">
+                        <!-- JS에서 동적으로 리스트가 생성됩니다. -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 페이징 영역 -->
+            <div class="pagination-container">
+                <span class="showing-info">총 <span id="totalItems">0</span>명 중 <span id="startIdx">0</span>-<span id="endIdx">0</span> 명 표시 중</span>
+                <div class="pagination" id="paginationControls">
+                    <!-- JS에서 페이징 버튼이 생성됩니다. -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 고객 추가 / 수정 모달창 -->
+    <div class="modal-overlay" id="customerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">고객 추가</h3>
+                <button class="close-btn" id="closeModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="customerForm">
+                    <input type="hidden" id="customerId">
+                    <div class="form-group">
+                        <label for="customerName">이름 *</label>
+                        <input type="text" id="customerName" required placeholder="예: 홍길동">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerEmail">이메일 *</label>
+                        <input type="email" id="customerEmail" required placeholder="예: user@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerPhone">연락처</label>
+                        <input type="tel" id="customerPhone" placeholder="예: 010-1234-5678">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerSignupPath">가입경로</label>
+                        <select id="customerSignupPath">
+                            <option value="GOOGLE">Google</option>
+                            <option value="NAVER">Naver</option>
+                            <option value="EMAIL">Email</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerStatus">계정 상태</label>
+                        <select id="customerStatus">
+                            <option value="ACTIVE">활성 (Active)</option>
+                            <option value="INACTIVE">비활성 (Inactive)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelModalBtn">취소</button>
+                <button class="btn btn-primary" id="saveCustomerBtn">저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림창 영역 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="customer.js"></script>
+</body>
+</html>
