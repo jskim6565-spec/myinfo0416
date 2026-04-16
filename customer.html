@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,16 +9,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="customer.css">
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- 상단 내비게이션바 -->
         <header class="top-nav">
             <div class="logo">
                 <span class="logo-icon"></span>
-                <h1>Customer Manager</h1>
+                <h1>조은호텔 Customer Manager</h1>
             </div>
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff" alt="Admin" class="avatar">
+                <img src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff" alt="Admin"
+                    class="avatar">
                 <span>프로필</span>
             </div>
         </header>
@@ -27,8 +30,10 @@
             <div class="page-header">
                 <h2>고객 목록</h2>
                 <button class="btn btn-primary" id="addCustomerBtn">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                     고객 추가
                 </button>
@@ -37,8 +42,10 @@
             <!-- 컨트롤 패널 (검색 및 필터링) -->
             <div class="controls-panel">
                 <div class="search-box">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     <input type="text" id="searchInput" placeholder="이름, 이메일, 연락처로 검색...">
                 </div>
@@ -75,7 +82,8 @@
 
             <!-- 페이징 영역 -->
             <div class="pagination-container">
-                <span class="showing-info">총 <span id="totalItems">0</span>명 중 <span id="startIdx">0</span>-<span id="endIdx">0</span> 명 표시 중</span>
+                <span class="showing-info">총 <span id="totalItems">0</span>명 중 <span id="startIdx">0</span>-<span
+                        id="endIdx">0</span> 명 표시 중</span>
                 <div class="pagination" id="paginationControls">
                     <!-- JS에서 페이징 버튼이 생성됩니다. -->
                 </div>
@@ -134,4 +142,5 @@
 
     <script src="customer.js"></script>
 </body>
+
 </html>
